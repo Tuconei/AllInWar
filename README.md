@@ -15,7 +15,7 @@ All In War is a Dalamud table assistant for running a simple high-card gambling 
 
 ## Current Plugin Scope
 
-The plugin currently tracks the table, rolls cards, resolves ties, calculates rake/payout, and records manual trade confirmations.
+The plugin currently tracks the table, rolls cards, resolves ties, calculates rake/payout, sends configurable rules/collection/winner announcements from explicit button clicks, and records manual trade confirmations.
 
 It does not initiate, automate, or complete unattended trades. Dalamud's published plugin restrictions caution against automatic interactions with game servers, so settlement is presented as an explicit manual instruction and tracked with status buttons.
 

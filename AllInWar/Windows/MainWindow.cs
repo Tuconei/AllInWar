@@ -80,6 +80,18 @@ public class MainWindow : Window, IDisposable
         }
 
         ImGui.SameLine();
+        if (ImGui.Button("Send Rules"))
+        {
+            SendConfiguredMessage(plugin.Configuration.RulesMessage);
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button("Send Collection"))
+        {
+            SendConfiguredMessage(plugin.Configuration.CollectionMessage);
+        }
+
+        ImGui.SameLine();
         if (ImGui.Button("Confirm Antes"))
         {
             table.ConfirmAllAntes();
@@ -238,11 +250,74 @@ public class MainWindow : Window, IDisposable
         {
             ImGui.TextUnformatted($"Winner: {table.Winner.Name}");
             ImGui.TextUnformatted($"Manual settlement: trade {table.WinnerPayout:n0} to {table.Winner.Name}; keep {table.Rake:n0} house rake.");
+
+            if (ImGui.Button("Send Winner"))
+            {
+                SendConfiguredMessage(plugin.Configuration.WinnerMessage);
+            }
         }
 
         if (plugin.Configuration.ConfirmManualTradesOnly)
         {
             ImGui.TextWrapped("Trade controls are confirmation trackers. This plugin does not initiate or complete unattended trades.");
         }
+    }
+
+    private void SendConfiguredMessage(string template)
+    {
+        foreach (var line in FormatMessage(template).Split(["\r\n", "\n"], StringSplitOptions.None))
+        {
+            var message = line.Trim();
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                continue;
+            }
+
+            var command = BuildChatCommand(message);
+            if (string.IsNullOrWhiteSpace(command))
+            {
+                Plugin.ChatGui.PrintError("All In War message was not sent. Configure a chat command such as /yell, or start the message line with a slash command.");
+                continue;
+            }
+
+            Plugin.CommandManager.ProcessCommand(command);
+        }
+    }
+
+    private string BuildChatCommand(string message)
+    {
+        if (message.StartsWith('/'))
+        {
+            return message;
+        }
+
+        var prefix = plugin.Configuration.ChatCommandPrefix.Trim();
+        if (string.IsNullOrWhiteSpace(prefix))
+        {
+            return string.Empty;
+        }
+
+        if (!prefix.StartsWith('/'))
+        {
+            prefix = "/" + prefix;
+        }
+
+        return $"{prefix} {message}";
+    }
+
+    private string FormatMessage(string template)
+    {
+        var winner = table.Winner;
+        var winnerCard = winner is null || winner.Card == 0 ? string.Empty : AllInWarTable.CardName(winner.Card);
+
+        return template
+            .Replace("{buyIn}", table.BuyIn.ToString("n0"), StringComparison.OrdinalIgnoreCase)
+            .Replace("{rake}", table.RakePercent.ToString("n0"), StringComparison.OrdinalIgnoreCase)
+            .Replace("{pot}", table.Pot.ToString("n0"), StringComparison.OrdinalIgnoreCase)
+            .Replace("{rakeAmount}", table.Rake.ToString("n0"), StringComparison.OrdinalIgnoreCase)
+            .Replace("{payout}", table.WinnerPayout.ToString("n0"), StringComparison.OrdinalIgnoreCase)
+            .Replace("{winner}", winner?.Name ?? "Winner", StringComparison.OrdinalIgnoreCase)
+            .Replace("{card}", winnerCard, StringComparison.OrdinalIgnoreCase)
+            .Replace("{players}", table.Players.Count.ToString("n0"), StringComparison.OrdinalIgnoreCase);
     }
 }
