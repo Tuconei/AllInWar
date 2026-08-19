@@ -1,6 +1,7 @@
 {
   "Author": "Tuconei",
   "Name": "All In War",
+  "AssemblyVersion": "0.1.2.0",
   "Punchline": "Runs and records All In War table rounds.",
   "Description": "Table assistant for All In War. Use /allinwar to seat players, record antes and card rolls, resolve wars, calculate rake, and track settlement trades.",
   "ApplicableVersion": "any",
